@@ -1,0 +1,723 @@
+﻿#pragma indent
+
+using System
+using System.Runtime.InteropServices
+
+namespace MusicBeePlugin
+  public partial class Plugin
+    public PluginInfoVersion   : short =  1
+    public MinInterfaceVersion : short = 35
+    public MinApiRevision      : short = 47
+
+    [StructLayout(LayoutKind.Sequential)] \
+    public struct MusicBeeApiInterface
+      
+      public Initialise(apiInterfacePtr : IntPtr) : void
+        NativeMethods.CopyMemory(ref this, apiInterfacePtr, 4)
+        def length = match(this.MusicBeeVersion)
+          // MusicBee version 2.0 - Api methods > revision 25 are not available
+          | MusicBeeVersion.v2_0 => 456
+          | MusicBeeVersion.v2_1 => 516
+          | MusicBeeVersion.v2_2 => 584
+          | MusicBeeVersion.v2_3 => 596
+          | MusicBeeVersion.v2_4 => 604
+          | _                    => Marshal.SizeOf(this)
+        NativeMethods.CopyMemory(ref this, apiInterfacePtr, length)
+      
+      public MusicBeeVersion : MusicBeeVersion
+        get match(ApiRevision)
+          | _ when ApiRevision <= 25 => v2_0
+          | _ when ApiRevision <= 31 => v2_1
+          | _ when ApiRevision <= 33 => v2_2
+          | _ when ApiRevision <= 38 => v2_3
+          | _ when ApiRevision <= 43 => v2_4
+          | _                        => v2_5
+      
+      public InterfaceVersion                     : short
+      public ApiRevision                          : short
+      public MB_ReleaseString                     : MB_ReleaseStringDelegate
+      public MB_Trace                             : MB_TraceDelegate
+      public Setting_GetPersistentStoragePath     : Setting_GetPersistentStoragePathDelegate
+      public Setting_GetSkin                      : Setting_GetSkinDelegate
+      public Setting_GetSkinElementColour         : Setting_GetSkinElementColourDelegate
+      public Setting_IsWindowBordersSkinned       : Setting_IsWindowBordersSkinnedDelegate
+      public Library_GetFileProperty              : Library_GetFilePropertyDelegate
+      public Library_GetFileTag                   : Library_GetFileTagDelegate
+      public Library_SetFileTag                   : Library_SetFileTagDelegate
+      public Library_CommitTagsToFile             : Library_CommitTagsToFileDelegate
+      public Library_GetLyrics                    : Library_GetLyricsDelegate
+      [Obsolete("Use Library_GetArtworkEx")] \
+      public Library_GetArtwork                   : Library_GetArtworkDelegate
+      public Library_QueryFiles                   : Library_QueryFilesDelegate
+      public Library_QueryGetNextFile             : Library_QueryGetNextFileDelegate
+      public Player_GetPosition                   : Player_GetPositionDelegate
+      public Player_SetPosition                   : Player_SetPositionDelegate
+      public Player_GetPlayState                  : Player_GetPlayStateDelegate
+      public Player_PlayPause                     : Player_ActionDelegate
+      public Player_Stop                          : Player_ActionDelegate
+      public Player_StopAfterCurrent              : Player_ActionDelegate
+      public Player_PlayPreviousTrack             : Player_ActionDelegate
+      public Player_PlayNextTrack                 : Player_ActionDelegate
+      public Player_StartAutoDj                   : Player_ActionDelegate
+      public Player_EndAutoDj                     : Player_ActionDelegate
+      public Player_GetVolume                     : Player_GetVolumeDelegate
+      public Player_SetVolume                     : Player_SetVolumeDelegate
+      public Player_GetMute                       : Player_GetMuteDelegate
+      public Player_SetMute                       : Player_SetMuteDelegate
+      public Player_GetShuffle                    : Player_GetShuffleDelegate
+      public Player_SetShuffle                    : Player_SetShuffleDelegate
+      public Player_GetRepeat                     : Player_GetRepeatDelegate
+      public Player_SetRepeat                     : Player_SetRepeatDelegate
+      public Player_GetEqualiserEnabled           : Player_GetEqualiserEnabledDelegate
+      public Player_SetEqualiserEnabled           : Player_SetEqualiserEnabledDelegate
+      public Player_GetDspEnabled                 : Player_GetDspEnabledDelegate
+      public Player_SetDspEnabled                 : Player_SetDspEnabledDelegate
+      public Player_GetScrobbleEnabled            : Player_GetScrobbleEnabledDelegate
+      public Player_SetScrobbleEnabled            : Player_SetScrobbleEnabledDelegate
+      public NowPlaying_GetFileUrl                : NowPlaying_GetFileUrlDelegate
+      public NowPlaying_GetDuration               : NowPlaying_GetDurationDelegate
+      public NowPlaying_GetFileProperty           : NowPlaying_GetFilePropertyDelegate
+      public NowPlaying_GetFileTag                : NowPlaying_GetFileTagDelegate
+      public NowPlaying_GetLyrics                 : NowPlaying_GetLyricsDelegate
+      public NowPlaying_GetArtwork                : NowPlaying_GetArtworkDelegate
+      public NowPlayingList_Clear                 : NowPlayingList_ActionDelegate
+      public NowPlayingList_QueryFiles            : Library_QueryFilesDelegate
+      public NowPlayingList_QueryGetNextFile      : Library_QueryGetNextFileDelegate
+      public NowPlayingList_PlayNow               : NowPlayingList_FileActionDelegate
+      public NowPlayingList_QueueNext             : NowPlayingList_FileActionDelegate
+      public NowPlayingList_QueueLast             : NowPlayingList_FileActionDelegate
+      public NowPlayingList_PlayLibraryShuffled   : NowPlayingList_ActionDelegate
+      public Playlist_QueryPlaylists              : Playlist_QueryPlaylistsDelegate
+      public Playlist_QueryGetNextPlaylist        : Playlist_QueryGetNextPlaylistDelegate
+      public Playlist_GetType                     : Playlist_GetTypeDelegate
+      public Playlist_QueryFiles                  : Playlist_QueryFilesDelegate
+      public Playlist_QueryGetNextFile            : Library_QueryGetNextFileDelegate
+      public MB_GetWindowHandle                   : MB_WindowHandleDelegate
+      public MB_RefreshPanels                     : MB_RefreshPanelsDelegate
+      public MB_SendNotification                  : MB_SendNotificationDelegate
+      public MB_AddMenuItem                       : MB_AddMenuItemDelegate
+      public Setting_GetFieldName                 : Setting_GetFieldNameDelegate
+      [Obsolete("Use Library_QueryFilesEx", true)] \
+      public Library_QueryGetAllFiles             : Library_QueryGetAllFilesDelegate
+      [Obsolete("Use NowPlayingList_QueryFilesEx", true)] \
+      public NowPlayingList_QueryGetAllFiles      : Library_QueryGetAllFilesDelegate
+      [Obsolete("Use Playlist_QueryFilesEx", true)] \
+      public Playlist_QueryGetAllFiles            : Library_QueryGetAllFilesDelegate
+      public MB_CreateBackgroundTask              : MB_CreateBackgroundTaskDelegate
+      public MB_SetBackgroundTaskMessage          : MB_SetBackgroundTaskMessageDelegate
+      public MB_RegisterCommand                   : MB_RegisterCommandDelegate
+      public Setting_GetDefaultFont               : Setting_GetDefaultFontDelegate
+      public Player_GetShowTimeRemaining          : Player_GetShowTimeRemainingDelegate
+      public NowPlayingList_GetCurrentIndex       : NowPlayingList_GetCurrentIndexDelegate
+      public NowPlayingList_GetListFileUrl        : NowPlayingList_GetFileUrlDelegate
+      public NowPlayingList_GetFileProperty       : NowPlayingList_GetFilePropertyDelegate
+      public NowPlayingList_GetFileTag            : NowPlayingList_GetFileTagDelegate
+      public NowPlaying_GetSpectrumData           : NowPlaying_GetSpectrumDataDelegate
+      public NowPlaying_GetSoundGraph             : NowPlaying_GetSoundGraphDelegate
+      public MB_GetPanelBounds                    : MB_GetPanelBoundsDelegate
+      public MB_AddPanel                          : MB_AddPanelDelegate
+      public MB_RemovePanel                       : MB_RemovePanelDelegate
+      public MB_GetLocalisation                   : MB_GetLocalisationDelegate
+      public NowPlayingList_IsAnyPriorTracks      : NowPlayingList_IsAnyPriorTracksDelegate
+      public NowPlayingList_IsAnyFollowingTracks  : NowPlayingList_IsAnyFollowingTracksDelegate
+      public Player_ShowEqualiser                 : Player_ShowEqualiserDelegate
+      public Player_GetAutoDjEnabled              : Player_GetAutoDjEnabledDelegate
+      public Player_GetStopAfterCurrentEnabled    : Player_GetStopAfterCurrentEnabledDelegate
+      public Player_GetCrossfade                  : Player_GetCrossfadeDelegate
+      public Player_SetCrossfade                  : Player_SetCrossfadeDelegate
+      public Player_GetReplayGainMode             : Player_GetReplayGainModeDelegate
+      public Player_SetReplayGainMode             : Player_SetReplayGainModeDelegate
+      public Player_QueueRandomTracks             : Player_QueueRandomTracksDelegate
+      public Setting_GetDataType                  : Setting_GetDataTypeDelegate
+      public NowPlayingList_GetNextIndex          : NowPlayingList_GetNextIndexDelegate
+      public NowPlaying_GetArtistPicture          : NowPlaying_GetArtistPictureDelegate
+      public NowPlaying_GetDownloadedArtwork      : NowPlaying_GetArtworkDelegate
+      // api version 16
+      public MB_ShowNowPlayingAssistant           : MB_ShowNowPlayingAssistantDelegate
+      // api version 17
+      public NowPlaying_GetDownloadedLyrics       : NowPlaying_GetLyricsDelegate
+      // api version 18
+      public Player_GetShowRatingTrack            : Player_GetShowRatingTrackDelegate
+      public Player_GetShowRatingLove             : Player_GetShowRatingLoveDelegate
+      // api version 19
+      public MB_CreateParameterisedBackgroundTask : MB_CreateParameterisedBackgroundTaskDelegate
+      public Setting_GetLastFmUserId              : Setting_GetLastFmUserIdDelegate
+      public Playlist_GetName                     : Playlist_GetNameDelegate
+      public Playlist_CreatePlaylist              : Playlist_CreatePlaylistDelegate
+      public Playlist_SetFiles                    : Playlist_SetFilesDelegate
+      public Library_QuerySimilarArtists          : Library_QuerySimilarArtistsDelegate
+      public Library_QueryLookupTable             : Library_QueryLookupTableDelegate
+      public Library_QueryGetLookupTableValue     : Library_QueryGetLookupTableValueDelegate
+      public NowPlayingList_QueueFilesNext        : NowPlayingList_FilesActionDelegate
+      public NowPlayingList_QueueFilesLast        : NowPlayingList_FilesActionDelegate
+      // api version 20
+      public Setting_GetWebProxy                  : Setting_GetWebProxyDelegate
+      // api version 21
+      public NowPlayingList_RemoveAt              : NowPlayingList_RemoveAtDelegate
+      // api version 22
+      public Playlist_RemoveAt                    : Playlist_RemoveAtDelegate
+      // api version 23
+      public MB_SetPanelScrollableArea            : MB_SetPanelScrollableAreaDelegate
+      // api version 24
+      public MB_InvokeCommand                     : MB_InvokeCommandDelegate
+      public MB_OpenFilterInTab                   : MB_OpenFilterInTabDelegate
+      // api version 25
+      public MB_SetWindowSize                     : MB_SetWindowSizeDelegate
+      public Library_GetArtistPicture             : Library_GetArtistPictureDelegate
+      public Pending_GetFileUrl                   : Pending_GetFileUrlDelegate
+      public Pending_GetFileProperty              : Pending_GetFilePropertyDelegate
+      public Pending_GetFileTag                   : Pending_GetFileTagDelegate
+      // api version 26
+      public Player_GetButtonEnabled              : Player_GetButtonEnabledDelegate
+      // api version 27
+      public NowPlayingList_MoveFiles             : NowPlayingList_MoveFilesDelegate
+      // api version 28
+      public Library_GetArtworkUrl                : Library_GetArtworkDelegate
+      public Library_GetArtistPictureThumb        : Library_GetArtistPictureThumbDelegate
+      public NowPlaying_GetArtworkUrl             : NowPlaying_GetArtworkDelegate
+      public NowPlaying_GetDownloadedArtworkUrl   : NowPlaying_GetArtworkDelegate
+      public NowPlaying_GetArtistPictureThumb     : NowPlaying_GetArtistPictureThumbDelegate
+      // api version 29
+      public Playlist_IsInList                    : Playlist_IsInListDelegate
+      // api version 30
+      public Library_GetArtistPictureUrls         : Library_GetArtistPictureUrlsDelegate
+      public NowPlaying_GetArtistPictureUrls      : NowPlaying_GetArtistPictureUrlsDelegate
+      // api version 31
+      public Playlist_AppendFiles                 : Playlist_AddFilesDelegate
+      // api version 32
+      public Sync_FileStart                       : Sync_FileStartDelegate
+      public Sync_FileEnd                         : Sync_FileEndDelegate
+      // api version 33
+      public Library_QueryFilesEx                 : Library_QueryFilesExDelegate
+      public NowPlayingList_QueryFilesEx          : Library_QueryFilesExDelegate
+      public Playlist_QueryFilesEx                : Playlist_QueryFilesExDelegate
+      public Playlist_MoveFiles                   : Playlist_MoveFilesDelegate
+      public Playlist_PlayNow                     : Playlist_PlayNowDelegate
+      public NowPlaying_IsSoundtrack              : NowPlaying_IsSoundtrackDelegate
+      public NowPlaying_GetSoundtrackPictureUrls  : NowPlaying_GetArtistPictureUrlsDelegate
+      public Library_GetDevicePersistentId        : Library_GetDevicePersistentIdDelegate
+      public Library_SetDevicePersistentId        : Library_SetDevicePersistentIdDelegate
+      public Library_FindDevicePersistentId       : Library_FindDevicePersistentIdDelegate
+      public Setting_GetValue                     : Setting_GetValueDelegate
+      public Library_AddFileToLibrary             : Library_AddFileToLibraryDelegate
+      public Playlist_DeletePlaylist              : Playlist_DeletePlaylistDelegate
+      public Library_GetSyncDelta                 : Library_GetSyncDeltaDelegate
+      // api version 35
+      public Library_GetFileTags                  : Library_GetFileTagsDelegate
+      public NowPlaying_GetFileTags               : NowPlaying_GetFileTagsDelegate
+      public NowPlayingList_GetFileTags           : NowPlayingList_GetFileTagsDelegate
+      // api version 43
+      public MB_AddTreeNode                       : MB_AddTreeNodeDelegate
+      public MB_DownloadFile                      : MB_DownloadFileDelegate
+      // api version 47
+      public Setting_GetFileConvertCommandLine    : Setting_GetFileConvertCommandLineDelegate
+      public Player_OpenStreamHandle              : Player_OpenStreamHandleDelegate
+      public Player_UpdatePlayStatistics          : Player_UpdatePlayStatisticsDelegate
+      public Library_GetArtworkEx                 : Library_GetArtworkExDelegate
+      public Library_SetArtworkEx                 : Library_SetArtworkExDelegate
+      public MB_GetVisualiserInformation          : MB_GetVisualiserInformationDelegate
+      public MB_ShowVisualiser                    : MB_ShowVisualiserDelegate
+      public MB_GetPluginViewInformation          : MB_GetPluginViewInformationDelegate
+      public MB_ShowPluginView                    : MB_ShowPluginViewDelegate
+      public Player_GetOutputDevices              : Player_GetOutputDevicesDelegate
+      public Player_SetOutputDevice               : Player_SetOutputDeviceDelegate
+
+    public enum MusicBeeVersion
+      | v2_0 = 0
+      | v2_1 = 1
+      | v2_2 = 2
+      | v2_3 = 3
+      | v2_4 = 4
+      | v2_5 = 5
+
+    public enum PluginType
+      | Unknown               = 0
+      | General               = 1
+      | LyricsRetrieval       = 2
+      | ArtworkRetrieval      = 3
+      | PanelView             = 4
+      | DataStream            = 5
+      | InstantMessenger      = 6
+      | Storage               = 7
+      | VideoPlayer           = 8
+      | DSP                   = 9
+      | TagRetrieval          = 10
+      | TagOrArtworkRetrieval = 11
+      | Upnp                  = 12
+
+    [StructLayout(LayoutKind.Sequential)] \
+    public class PluginInfo
+      public PluginInfoVersion        : short                    { get; set; }
+      public Type                     : PluginType               { get; set; }
+      public Name                     : string                   { get; set; }
+      public Description              : string                   { get; set; }
+      public Author                   : string                   { get; set; }
+      public TargetApplication        : string                   { get; set; }
+      public VersionMajor             : short                    { get; set; }
+      public VersionMinor             : short                    { get; set; }
+      public Revision                 : short                    { get; set; }
+      public MinInterfaceVersion      : short                    { get; set; }
+      public MinApiRevision           : short                    { get; set; }
+      public ReceiveNotifications     : ReceiveNotificationFlags { get; set; }
+      public ConfigurationPanelHeight : int                      { get; set; }
+
+    [Flags] \
+    public enum ReceiveNotificationFlags
+      | StartupOnly      = 0b0000
+      | PlayerEvents     = 0b0001
+      | DataStreamEvents = 0b0010
+      | TagEvents        = 0b0100
+      | DownloadEvents   = 0b1000
+
+    public enum NotificationType
+      | PluginStartup               = 0      // notification sent after successful initialisation for an enabled plugin
+      | TrackChanging               = 16
+      | TrackChanged                = 1
+      | PlayStateChanged            = 2
+      | AutoDjStarted               = 3
+      | AutoDjStopped               = 4
+      | VolumeMuteChanged           = 5
+      | VolumeLevelChanged          = 6
+      | NowPlayingListChanged       = 7
+      | NowPlayingListEnded         = 18
+      | NowPlayingArtworkReady      = 8
+      | NowPlayingLyricsReady       = 9
+      | TagsChanging                = 10
+      | TagsChanged                 = 11
+      | RatingChanging              = 15
+      | RatingChanged               = 12
+      | PlayCountersChanged         = 13
+      | ScreenSaverActivating       = 14
+      | ShutdownStarted             = 17
+      | EmbedInPanel                = 19
+      | PlayerRepeatChanged         = 20
+      | PlayerShuffleChanged        = 21
+      | PlayerEqualiserOnOffChanged = 22
+      | PlayerScrobbleChanged       = 23
+      | ReplayGainChanged           = 24
+      | FileDeleting                = 25
+      | FileDeleted                 = 26
+      | ApplicationWindowChanged    = 27
+      | StopAfterCurrentChanged     = 28
+      | LibrarySwitched             = 29
+      | FileAddedToLibrary          = 30
+      | FileAddedToInbox            = 31
+      | SynchCompleted              = 32
+      | DownloadCompleted           = 33
+      | MusicBeeStarted             = 34
+
+    public enum PluginCloseReason
+      | MusicBeeClosing = 1
+      | UserDisabled    = 2
+      | StopNoUnload    = 3
+
+    public enum CallbackType
+      | SettingsUpdated         = 1
+      | StorageReady            = 2
+      | StorageFailed           = 3
+      | FilesRetrievedChanged   = 4
+      | FilesRetrievedNoChange  = 5
+      | FilesRetrievedFail      = 6
+      | LyricsDownloaded        = 7
+      | StorageEject            = 8
+      | SuspendPlayCounters     = 9
+      | ResumePlayCounters      = 10
+      | EnablePlugin            = 11
+      | DisablePlugin           = 12
+      | RenderingDevicesChanged = 13
+      | FullscreenOn            = 14
+      | FullscreenOff           = 15
+
+    public enum FilePropertyType
+      | Url                 = 2
+      | Kind                = 4
+      | Format              = 5
+      | Size                = 7
+      | Channels            = 8
+      | SampleRate          = 9
+      | Bitrate             = 10
+      | DateModified        = 11
+      | DateAdded           = 12
+      | LastPlayed          = 13
+      | PlayCount           = 14
+      | SkipCount           = 15
+      | Duration            = 16
+      | Status              = 21
+      | NowPlayingListIndex = 78  // only has meaning when called from NowPlayingList_* commands
+      | ReplayGainTrack     = 94
+      | ReplayGainAlbum     = 95
+    
+    public enum MetaDataType
+    {
+      | TrackTitle               = 65
+      | Album                    = 30
+      | AlbumArtist              = 31    // displayed album artist
+      | AlbumArtistRaw           = 34    // stored album artist
+      | Artist                   = 32    // displayed artist
+      | MultiArtist              = 33    // individual artists, separated by a null char
+			| PrimaryArtist            = 19    // first artist from multi-artist tagged file, otherwise displayed artist
+      | Artists                  = 144
+      | ArtistsWithArtistRole    = 145
+      | ArtistsWithPerformerRole = 146
+      | ArtistsWithGuestRole     = 147
+      | ArtistsWithRemixerRole   = 148
+      | Artwork                  = 40
+      | BeatsPerMin              = 41
+      | Composer                 = 43    // displayed composer
+      | MultiComposer            = 89    // individual composers, separated by a null char
+      | Comment                  = 44
+      | Conductor                = 45
+      | Custom1                  = 46
+      | Custom2                  = 47
+      | Custom3                  = 48
+      | Custom4                  = 49
+      | Custom5                  = 50
+      | Custom6                  = 96
+      | Custom7                  = 97
+      | Custom8                  = 98
+      | Custom9                  = 99
+      | Custom10                 = 128
+      | Custom11                 = 129
+      | Custom12                 = 130
+      | Custom13                 = 131
+      | Custom14                 = 132
+      | Custom15                 = 133
+      | Custom16                 = 134
+      | DiscNo                   = 52
+      | DiscCount                = 54
+      | Encoder                  = 55
+      | Genre                    = 59
+      | Genres                   = 143
+      | GenreCategory            = 60
+      | Grouping                 = 61
+      | Keywords                 = 84
+      | HasLyrics                = 63
+      | Lyricist                 = 62
+      | Lyrics                   = 114
+      | Mood                     = 64
+      | Occasion                 = 66
+      | Origin                   = 67
+      | Publisher                = 73
+      | Quality                  = 74
+      | Rating                   = 75
+      | RatingLove               = 76
+      | RatingAlbum              = 104
+      | Tempo                    = 85
+      | TrackNo                  = 86
+      | TrackCount               = 87
+      | Virtual1                 = 109
+      | Virtual2                 = 110
+      | Virtual3                 = 111
+      | Virtual4                 = 112
+      | Virtual5                 = 113
+      | Virtual6                 = 122
+      | Virtual7                 = 123
+      | Virtual8                 = 124
+      | Virtual9                 = 125
+      | Virtual10                = 135
+      | Virtual11                = 136
+      | Virtual12                = 137
+      | Virtual13                = 138
+      | Virtual14                = 139
+      | Virtual15                = 140
+      | Virtual16                = 141
+      | Year                     = 88
+    }
+    
+    public enum FileCodec
+      | Unknown        = -1
+      | Mp3            = 1
+      | Aac            = 2
+      | Flac           = 3
+      | Ogg            = 4
+      | WavPack        = 5
+      | Wma            = 6
+      | Tak            = 7
+      | Mpc            = 8
+      | Wave           = 9
+      | Asx            = 10
+      | Alac           = 11
+      | Aiff           = 12
+      | Pcm            = 13
+      | Opus           = 15
+      | Spx            = 16
+      | Dsd            = 17
+      | AacNoContainer = 18
+    
+    public enum EncodeQuality
+      | SmallSize   = 1
+      | Portable    = 2
+      | HighQuality = 3
+      | Archiving   = 4
+
+    [Flags] \
+    public enum LibraryCategory
+      | Music     = 0b000
+      | Audiobook = 0b001
+      | Video     = 0b010
+      | Inbox     = 0b100
+
+    public enum DeviceIdType
+      | GooglePlay   = 1
+      | AppleDevice  = 2
+      | GooglePlay2  = 3
+      | AppleDevice2 = 4
+
+    public enum DataType
+      | String   = 0
+      | Number   = 1
+      | DateTime = 2
+      | Rating   = 3
+
+    public enum SettingId
+      | CompactPlayerFlickrEnabled          = 1
+      | FileTaggingPreserveModificationTime = 2
+      | LastDownloadFolder                  = 3
+      | ArtistGenresOnly                    = 4
+      | IgnoreNamePrefixes                  = 5
+      | IgnoreNameChars                     = 6
+      | PlayCountTriggerPercent             = 7
+      | PlayCountTriggerSeconds             = 8
+      | SkipCountTriggerPercent             = 9
+      | SkipCountTriggerSeconds             = 10
+
+    public enum ComparisonType
+      | Is        = 0
+      | IsSimilar = 20
+
+    public enum LyricsType
+      | NotSpecified   = 0
+      | Synchronised   = 1
+      | UnSynchronised = 2
+
+    public enum PlayState
+      | Undefined = 0
+      | Loading   = 1
+      | Playing   = 3
+      | Paused    = 6
+      | Stopped   = 7
+
+    public enum RepeatMode
+      | None = 0
+      | All  = 1
+      | One  = 2
+
+    public enum PlayButtonType
+      | PreviousTrack = 0
+      | PlayPause     = 1
+      | NextTrack     = 2
+      | Stop          = 3
+
+    public enum PlaylistFormat
+      | Unknown     = 0
+      | M3u         = 1
+      | Xspf        = 2
+      | Asx         = 3
+      | Wpl         = 4
+      | Pls         = 5
+      | Auto        = 7
+      | M3uAscii    = 8
+      | AsxFile     = 9
+      | Radio       = 10
+      | M3uExtended = 11
+      | Mbp         = 12
+
+    public enum SkinElement
+      | SkinInputControl        = 7
+      | SkinInputPanel          = 10
+      | SkinInputPanelLabel     = 14
+      | SkinTrackAndArtistPanel = -1
+
+    public enum ElementState
+      | ElementStateDefault  = 0
+      | ElementStateModified = 6
+
+    public enum ElementComponent
+      | ComponentBorder     = 0
+      | ComponentBackground = 1
+      | ComponentForeground = 3
+
+    public enum PluginPanelDock
+      | ApplicationWindow   = 0
+      | TrackAndArtistPanel = 1
+      | TextBox             = 3
+      | ComboBox            = 4
+      | MainPanel           = 5
+    
+    public enum ReplayGainMode
+      | Off   = 0
+      | Track = 1
+      | Album = 2
+      | Smart = 3
+    
+    public enum PlayStatisticType
+      | NoChange          = 0
+      | IncreasePlayCount = 1
+      | IncreaseSkipCount = 2
+
+    public enum Command
+      | NavigateTo = 1
+    
+    public enum DownloadTarget
+      | Inbox          = 0
+      | MusicLibrary   = 1
+      | SpecificFolder = 3
+
+    [Flags] \
+    public enum PictureLocations: byte
+      | None                = 0b0000
+      | EmbedInFile         = 0b0001
+      | LinkToOrganisedCopy = 0b0010
+      | LinkToSource        = 0b0100
+      | FolderThumb         = 0b1000
+
+    public enum WindowState
+      | Off        = -1
+      | Normal     = 0
+      | Fullscreen = 1
+      | Desktop    = 2
+
+    public delegate MB_ReleaseStringDelegate(p1 : string) : void
+    public delegate MB_TraceDelegate(p1 : string) : void
+    public delegate MB_WindowHandleDelegate() : IntPtr
+    public delegate MB_RefreshPanelsDelegate() : void
+    public delegate MB_SendNotificationDelegate(type : CallbackType) : void
+    public delegate MB_AddMenuItemDelegate(menuPath : string, hotkeyDescription : string, handler : EventHandler) : System.Windows.Forms.ToolStripItem
+    public delegate MB_AddTreeNodeDelegate(treePath : string, name : string, icon : System.Drawing.Bitmap, openHandler : EventHandler, closeHandler : EventHandler) : bool
+    public delegate MB_RegisterCommandDelegate(command : string, handler : EventHandler) : void
+    public delegate MB_CreateBackgroundTaskDelegate(taskCallback : System.Threading.ThreadStart, owner : System.Windows.Forms.Form) : void
+    public delegate MB_CreateParameterisedBackgroundTaskDelegate(taskCallback : System.Threading.ParameterizedThreadStart, parameters : object, owner : System.Windows.Forms.Form) : void
+    public delegate MB_SetBackgroundTaskMessageDelegate(message : string) : void
+    public delegate MB_GetPanelBoundsDelegate(dock : PluginPanelDock) : System.Drawing.Rectangle
+    public delegate MB_SetPanelScrollableAreaDelegate(panel : System.Windows.Forms.Control, scrollArea : System.Drawing.Size, alwaysShowScrollBar : bool) : bool
+    public delegate MB_AddPanelDelegate(panel : System.Windows.Forms.Control, dock : PluginPanelDock) : System.Windows.Forms.Control
+    public delegate MB_RemovePanelDelegate(panel : System.Windows.Forms.Control) : void
+    public delegate MB_GetLocalisationDelegate(id : string, defaultText : string) : string
+    public delegate MB_ShowNowPlayingAssistantDelegate() : bool
+    public delegate MB_InvokeCommandDelegate(command : Command, parameter : object) : bool
+    public delegate MB_OpenFilterInTabDelegate(field1 : MetaDataType, comparison1 : ComparisonType, value1 : string, field2 : MetaDataType, comparison2 : ComparisonType, value2 : string) : bool
+    public delegate MB_SetWindowSizeDelegate(width : int, height : int) : bool
+    public delegate MB_DownloadFileDelegate(url : string, target : DownloadTarget, targetFolder : string, cancelDownload : bool) : bool
+    public delegate MB_GetVisualiserInformationDelegate(visualiserNames : out array[string], defaultVisualiserName : out string, defaultState : out WindowState, currentState : out WindowState) : bool
+    public delegate MB_ShowVisualiserDelegate(visualiserName : string, state : WindowState) : bool
+    public delegate MB_GetPluginViewInformationDelegate(pluginFilename : string, viewNames : out array[string], defaultViewName : out string, defaultState : out WindowState, currentState : out WindowState) : bool
+    public delegate MB_ShowPluginViewDelegate(pluginFilename : string, viewName : string, state : WindowState) : bool
+    public delegate Setting_GetFieldNameDelegate(field : MetaDataType) : string
+    public delegate Setting_GetPersistentStoragePathDelegate() : string
+    public delegate Setting_GetSkinDelegate() : string
+    public delegate Setting_GetSkinElementColourDelegate(element : SkinElement, state : ElementState, component : ElementComponent) : int
+    public delegate Setting_IsWindowBordersSkinnedDelegate() : bool
+    public delegate Setting_GetDefaultFontDelegate() : System.Drawing.Font
+    public delegate Setting_GetDataTypeDelegate(field : MetaDataType) : DataType
+    public delegate Setting_GetLastFmUserIdDelegate() : string
+    public delegate Setting_GetWebProxyDelegate() : string
+    public delegate Setting_GetValueDelegate(settingId : SettingId, value : ref object) : bool
+    public delegate Setting_GetFileConvertCommandLineDelegate(codec : FileCodec, encodeQuality : EncodeQuality) : string
+    public delegate Library_GetFilePropertyDelegate(sourceFileUrl : string, type : FilePropertyType) : string
+    public delegate Library_GetFileTagDelegate(sourceFileUrl : string, field : MetaDataType) : string
+    public delegate Library_GetFileTagsDelegate(sourceFileUrl : string, fields : array[MetaDataType], results : ref array[string]) : bool
+    public delegate Library_SetFileTagDelegate(sourceFileUrl : string, field : MetaDataType, value : string) : bool
+    public delegate Library_GetDevicePersistentIdDelegate(sourceFileUrl : string, idType : DeviceIdType) : string
+    public delegate Library_SetDevicePersistentIdDelegate(sourceFileUrl : string, idType : DeviceIdType, value : string) : bool
+    public delegate Library_FindDevicePersistentIdDelegate(idType : DeviceIdType, ids : array[string], values : ref array[string]) : bool
+    public delegate Library_CommitTagsToFileDelegate(sourceFileUrl : string) : bool
+    public delegate Library_AddFileToLibraryDelegate(sourceFileUrl : string, category : LibraryCategory) : string
+    public delegate Library_GetSyncDeltaDelegate(cachedFiles : array[string], updatedSince : DateTime, categories : LibraryCategory, newFiles : ref array[string], updatedFiles : ref array[string], deletedFiles : ref array[string]) : bool
+    public delegate Library_GetLyricsDelegate(sourceFileUrl : string, type : LyricsType) : string
+    public delegate Library_GetArtworkDelegate(sourceFileUrl : string, index : int) : string
+    public delegate Library_GetArtworkExDelegate(sourceFileUrl : string, index : int, retrievePictureData : bool, pictureLocations : ref PictureLocations, pictureUrl : ref string, imageData : ref array[byte]) : bool
+    public delegate Library_SetArtworkExDelegate(sourceFileUrl : string, index : int, imageData : array[byte]) : bool
+    public delegate Library_GetArtistPictureDelegate(artistName : string, fadingPercent : int, fadingColor : int) : string
+    public delegate Library_GetArtistPictureUrlsDelegate(artistName : string, localOnly : bool, urls : ref array[string]) : bool
+    public delegate Library_GetArtistPictureThumbDelegate(artistName : string) : string
+    public delegate Library_QueryFilesDelegate(query : string) : bool
+    public delegate Library_QueryGetNextFileDelegate() : string
+    public delegate Library_QueryGetAllFilesDelegate() : string
+    public delegate Library_QueryFilesExDelegate(query : string, files : ref array[string]) : bool
+    public delegate Library_QuerySimilarArtistsDelegate(artistName : string, minimumArtistSimilarityRating : double) : string
+    public delegate Library_QueryLookupTableDelegate(keyTags : string, valueTags : string, query : string) : bool
+    public delegate Library_QueryGetLookupTableValueDelegate(key : string) : string
+    public delegate Player_GetPositionDelegate() : int
+    public delegate Player_SetPositionDelegate(position : int) : bool
+    public delegate Player_GetPlayStateDelegate() : PlayState
+    public delegate Player_GetButtonEnabledDelegate(button : PlayButtonType) : bool
+    public delegate Player_ActionDelegate() : bool
+    public delegate Player_QueueRandomTracksDelegate(count : int) : int
+    public delegate Player_GetVolumeDelegate() : float
+    public delegate Player_SetVolumeDelegate(volume : float) : bool
+    public delegate Player_GetMuteDelegate() : bool
+    public delegate Player_SetMuteDelegate(mute : bool) : bool
+    public delegate Player_GetShuffleDelegate() : bool
+    public delegate Player_SetShuffleDelegate(shuffle : bool) : bool
+    public delegate Player_GetRepeatDelegate() : RepeatMode
+    public delegate Player_SetRepeatDelegate(@repeat : RepeatMode) : bool
+    public delegate Player_GetEqualiserEnabledDelegate() : bool
+    public delegate Player_SetEqualiserEnabledDelegate(enabled : bool) : bool
+    public delegate Player_GetDspEnabledDelegate() : bool
+    public delegate Player_SetDspEnabledDelegate(enabled : bool) : bool
+    public delegate Player_GetScrobbleEnabledDelegate() : bool
+    public delegate Player_SetScrobbleEnabledDelegate(enabled : bool) : bool
+    public delegate Player_GetShowTimeRemainingDelegate() : bool
+    public delegate Player_GetShowRatingTrackDelegate() : bool
+    public delegate Player_GetShowRatingLoveDelegate() : bool
+    public delegate Player_ShowEqualiserDelegate() : bool
+    public delegate Player_GetAutoDjEnabledDelegate() : bool
+    public delegate Player_GetStopAfterCurrentEnabledDelegate() : bool
+    public delegate Player_GetCrossfadeDelegate() : bool
+    public delegate Player_SetCrossfadeDelegate(crossfade : bool) : bool
+    public delegate Player_GetReplayGainModeDelegate() : ReplayGainMode
+    public delegate Player_SetReplayGainModeDelegate(mode : ReplayGainMode) : bool
+    public delegate Player_OpenStreamHandleDelegate(url : string, useMusicBeeSettings : bool, enableDsp : bool, gainType : ReplayGainMode) : int
+    public delegate Player_UpdatePlayStatisticsDelegate(url : string, countType : PlayStatisticType, disableScrobble : bool) : bool
+    public delegate Player_GetOutputDevicesDelegate(deviceNames : out array[string], activeDeviceName : out string) : bool
+    public delegate Player_SetOutputDeviceDelegate(deviceName : string) : bool
+    public delegate NowPlaying_GetFileUrlDelegate() : string
+    public delegate NowPlaying_GetDurationDelegate() : int
+    public delegate NowPlaying_GetFilePropertyDelegate(type : FilePropertyType) : string
+    public delegate NowPlaying_GetFileTagDelegate(field : MetaDataType) : string
+    public delegate NowPlaying_GetFileTagsDelegate(fields : array[MetaDataType], results : ref array[string]) : bool
+    public delegate NowPlaying_GetLyricsDelegate() : string
+    public delegate NowPlaying_GetArtworkDelegate() : string
+    public delegate NowPlaying_GetArtistPictureDelegate(fadingPercent : int) : string
+    public delegate NowPlaying_GetArtistPictureUrlsDelegate(localOnly : bool, urls : ref array[string]) : bool
+    public delegate NowPlaying_GetArtistPictureThumbDelegate() : string
+    public delegate NowPlaying_IsSoundtrackDelegate() : bool
+    public delegate NowPlaying_GetSpectrumDataDelegate(fftData : array[float]) : int
+    public delegate NowPlaying_GetSoundGraphDelegate(graphData : array[float]) : bool
+    public delegate NowPlayingList_GetCurrentIndexDelegate() : int
+    public delegate NowPlayingList_GetNextIndexDelegate(offset : int) : int
+    public delegate NowPlayingList_IsAnyPriorTracksDelegate() : bool
+    public delegate NowPlayingList_IsAnyFollowingTracksDelegate() : bool
+    public delegate NowPlayingList_GetFileUrlDelegate(index : int) : string
+    public delegate NowPlayingList_GetFilePropertyDelegate(index : int, type : FilePropertyType) : string
+    public delegate NowPlayingList_GetFileTagDelegate(index : int, field : MetaDataType) : string
+    public delegate NowPlayingList_GetFileTagsDelegate(index : int, fields : array[MetaDataType], results : ref array[string]) : bool
+    public delegate NowPlayingList_ActionDelegate() : bool
+    public delegate NowPlayingList_FileActionDelegate(sourceFileUrl : string) : bool
+    public delegate NowPlayingList_FilesActionDelegate(sourceFileUrl : array[string]) : bool
+    public delegate NowPlayingList_RemoveAtDelegate(index : int) : bool
+    public delegate NowPlayingList_MoveFilesDelegate(fromIndices : array[int], toIndex : int) : bool
+    public delegate Playlist_GetNameDelegate(playlistUrl : string) : string
+    public delegate Playlist_GetTypeDelegate(playlistUrl : string) : PlaylistFormat
+    public delegate Playlist_QueryPlaylistsDelegate() : bool
+    public delegate Playlist_QueryGetNextPlaylistDelegate() : string
+    public delegate Playlist_IsInListDelegate(playlistUrl : string, filename : string) : bool
+    public delegate Playlist_QueryFilesDelegate(playlistUrl : string) : bool
+    public delegate Playlist_QueryFilesExDelegate(playlistUrl : string, filenames : ref array[string]) : bool
+    public delegate Playlist_CreatePlaylistDelegate(folderName : string, playlistName : string, filenames : array[string]) : string
+    public delegate Playlist_DeletePlaylistDelegate(playlistUrl : string) : bool
+    public delegate Playlist_SetFilesDelegate(playlistUrl : string, filenames : array[string]) : bool
+    public delegate Playlist_AddFilesDelegate(playlistUrl : string, filenames : array[string]) : bool
+    public delegate Playlist_RemoveAtDelegate(playlistUrl : string, index : int) : bool
+    public delegate Playlist_MoveFilesDelegate(playlistUrl : string, fromIndices : array[int], toIndex : int) : bool
+    public delegate Playlist_PlayNowDelegate(playlistUrl : string) : bool
+    public delegate Pending_GetFileUrlDelegate() : string
+    public delegate Pending_GetFilePropertyDelegate(field : FilePropertyType) : string
+    public delegate Pending_GetFileTagDelegate(field : MetaDataType) : string
+    public delegate Sync_FileStartDelegate(filename : string) : string
+    public delegate Sync_FileEndDelegate(filename : string, success : bool, errorMessage : string) : void
+
+    private static class NativeMethods
+      [System.Security.SuppressUnmanagedCodeSecurity()] \
+      [DllImport("kernel32.dll")] \
+      public static extern CopyMemory(mbApiInterface : ref MusicBeeApiInterface, src : IntPtr, length : int) : void

@@ -1,0 +1,125 @@
+﻿#pragma indent
+
+using Nemerle.Extensions
+
+using System
+using System.Collections.Generic
+using System.IO
+using System.Linq
+using System.Reflection
+using System.Windows.Forms
+
+namespace MusicBeePlugin
+  using Net
+  using Windows.Forms
+
+  public partial class Plugin
+    public ConfigName = "PluginTemplateSettings.xml"
+
+    private mbApiInterface : MusicBeeApiInterface = MusicBeeApiInterface()
+    private about : PluginInfo = PluginInfo()
+    mutable configPath : string
+
+    public Initialise(apiInterfacePtr : IntPtr) : PluginInfo
+      def asm = Assembly.GetExecutingAssembly()
+      def attributes = asm.GetCustomAttributes(true).Cast.[Attribute]()
+      def version = asm.GetName().Version
+
+      mbApiInterface.Initialise(apiInterfacePtr)
+      about.PluginInfoVersion        = PluginInfoVersion
+      about.Name                     = attributes.OfType.[AssemblyTitleAttribute]().SingleOrDefault()?.Title
+      about.Description              = attributes.OfType.[AssemblyDescriptionAttribute]().SingleOrDefault()?.Description
+      about.Author                   = attributes.OfType.[AssemblyCompanyAttribute]().SingleOrDefault()?.Company
+      about.TargetApplication        = ""   // current only applies to artwork, lyrics or instant messenger name that appears in the provider drop down selector or target Instant Messenger
+      about.Type                     = PluginType.LyricsRetrieval
+      about.VersionMajor             = version.Major    :> short
+      about.VersionMinor             = version.Minor    :> short
+      about.Revision                 = version.Revision :> short
+      about.MinInterfaceVersion      = MinInterfaceVersion
+      about.MinApiRevision           = MinApiRevision
+      about.ReceiveNotifications     = ReceiveNotificationFlags.PlayerEvents | ReceiveNotificationFlags.TagEvents
+      about.ConfigurationPanelHeight = 0   // MusicBeeの設定エリアに表示されるパネルの高さを定義します。セットすることで、空のPanelオブジェクトのハンドルがConfigureメソッドに渡されます。
+
+      // config
+      def dataPath = mbApiInterface.Setting_GetPersistentStoragePath()
+      this.configPath = Path.Combine(dataPath, ConfigName)
+      Config.Instance.Load(configPath)
+      about
+
+    public Configure(panelHandle : IntPtr) : bool
+      Config.Instance.Load(configPath)
+      // panelHandle は about.ConfigurationPanelHeight に0以外を代入した場合にセットされます。
+      // パネルの幅は、ユーザーが選択したフォントに依存することに留意してください。
+      // about.ConfigurationPanelHeight に0を代入するとポップアップウィンドウが表示されます。
+      when (panelHandle != IntPtr.Zero)
+        // ここでは設定エリア用のコントロールをユーザーコントロールとして分離した後、
+        // それを一括りにして追加しています。
+        // 各コントロールの宣言や配置をここに直接記述すると非常に見通しが悪くなるためです。
+        // Configインスタンスを参照渡しすることでデータの整合を図っていますが、
+        // データバインディングを用いて編集画面を構築する場合は、
+        // Config#Load をデータバインドしている行より後で呼び出す必要があります。
+        // また、実際に表示される各々のコントロールの位置は
+        // デザイナに表示される位置と異なることがあるのに注意が必要です。
+        def configPanel = Control.FromHandle(panelHandle)
+        def configureControl = ConfigureControl(configPath)
+        configPanel.Controls.Add(configureControl)
+      about.ConfigurationPanelHeight != 0
+    
+    // MusicBeeの設定画面で「適用」または「保存」をクリックするたびに呼ばれます。
+    // 何かが変更されたか、そして更新の必要があるかどうかを把握するのはあなた次第です。
+    public SaveSettings() : void
+      // このコメントアウトを外すと設定ファイルが作られるようになります。
+      // 設定ファイルが存在しなくても Config#Load メソッドで例外が出ることはありません。
+      Config.Instance.Save(configPath)
+
+    // プラグインがユーザーの手によって無効化されるとき、またMusicBeeが終了するときに呼ばれます。
+    public Close(_reason : PluginCloseReason) : void
+    {
+    }
+
+    // 「アンインストール」がクリックされると呼び出されます。
+    // このプラグインが何かファイルを作成しているのであれば、ここで削除します。
+    public Uninstall() : void
+      File.Delete(configPath)
+
+    // MusicBeeからの通知イベントを受け取ります。
+    // about.ReceiveNotificationFlags = PlayerEvents とすることですべての通知を受け取れます。
+    // それ以外の場合は開始イベントだけです。
+    public ReceiveNotification(_sourceFileUrl : string, type : NotificationType) : void
+      // 通知のタイプごとにそれぞれ独立したコードを実行してください。
+      match (type)
+        | PluginStartup =>
+          // ここにプラグインの初期化処理を記述します。
+          match (mbApiInterface.Player_GetPlayState())
+            | Playing => ()
+            | Paused  => ()
+        | TrackChanged => ()
+
+    // このプラグインがサポートする歌詞やアートワークの提供元（プロバイダ名）を配列で返してください。
+    // ここで得られたプロバイダ名がMusicBeeの設定の「タグ(2)」に表示され、
+    // そしてそこで選択されたものが一つ一つRetrieveLyrics/RetrieveArtworkメソッドに渡されます。
+    public GetProviders() : array[string]
+      LyricsFetcher.RegisteredProviders
+
+    // provider に対して artist や title を元にリクエストして得られた歌詞を返してください。
+    // このメソッドは PluginType = LyricsRetrieval のときのみ有効です。
+    // 歌詞が見つからなかった場合は null を返してください。
+    public RetrieveLyrics(_sourceFileUrl : string, artist : string, trackTitle : string, _album : string, _synchronisedPreferred : bool, provider : string) : string
+      match (about.Type)
+        | LyricsRetrieval =>
+          def fetcher = LyricsFetcher.GetFetcher(provider)
+          fetcher?.Fetch(trackTitle, artist)
+        | _ => null
+
+    // provider に対してリクエストして得られたアートワークのバイナリデータをBASE64エンコードして返してください。
+    // このメソッドは PluginType = ArtworkRetrieval のときのみ有効です。
+    // アートワークが見つからなかった場合は null を返してください。
+    public RetrieveArtwork(_sourceFileUrl : string, _albumArtist : string, _album : string, _provider : string) : string
+      //Return Convert.ToBase64String(artworkBinaryData)
+      null
+
+    public GetSongs(query : string) : IEnumerable[string]
+      when (mbApiInterface.Library_QueryFiles(query))
+        mutable file
+        while ((file <- mbApiInterface.Library_QueryGetNextFile()) != null)
+          yield file

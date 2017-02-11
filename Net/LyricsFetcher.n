@@ -1,0 +1,82 @@
+﻿#pragma indent
+
+using Nemerle.Imperative
+using Nemerle.Extensions
+using System.Collections.Generic
+using System.Linq
+using System.Threading.Tasks
+using System.Xml
+using System.Xml.Linq
+using Sgml
+
+namespace MusicBeePlugin.Net
+  public abstract class LyricsFetcher
+    #region private fields
+    private static registeredProviders : Dictionary[string, LyricsFetcher] = Dictionary()
+    #endregion
+
+    #region public properties
+    /// <summary>
+    /// LyricsFetcher に登録済の歌詞提供事業者名リスト
+    /// </summary>
+    public static RegisteredProviders : array[string]
+      get
+        registeredProviders.Keys.ToArray()
+
+    /// <summary>
+    /// 一意に識別可能な歌詞提供事業者名
+    /// </summary>
+    public abstract Provider : string { get; }
+    #endregion
+    
+    static this()
+      _ = RegisterProvider.[DarkLyricsLyricsFetcher]()
+
+    #region public methods
+    /// <summary>
+    /// 歌詞取得クラスを登録します。
+    /// </summary>
+    /// <typeparam name="TLyricsFetcher"></typeparam>
+    /// <returns></returns>
+    public static RegisterProvider[TLyricsFetcher]() : bool \
+        where TLyricsFetcher : LyricsFetcher, new()
+      def fetcher = TLyricsFetcher()
+      def provider = fetcher.Provider
+      
+      if (registeredProviders.ContainsKey(provider))
+        false
+      else
+        registeredProviders[provider] = fetcher
+        true
+
+    /// <summary>
+    /// 登録済みの歌詞取得クラスを取得します。
+    /// </summary>
+    /// <param name="providerName"></param>
+    /// <returns></returns>
+    public static GetFetcher(providerName : string) : LyricsFetcher
+      registeredProviders.SingleOrDefault(p => p.Key == providerName).Value
+
+    /// <summary>
+    /// タグを元に歌詞を取得します。
+    /// </summary>
+    /// <param name="title">タイトル</param>
+    /// <param name="artist">アーティスト</param>
+    /// <param name="album">アルバム</param>
+    /// <returns></returns>
+    public abstract Fetch(title : string, artist : string, album : string = null) : string
+    #endregion
+
+    #region private methods
+    /// <summary>
+    /// リクエスト先のHTMLをXMLドキュメントとして非同期に取得します。
+    /// </summary>
+    /// <param name="url">リクエストURL</param>
+    /// <returns></returns>
+    protected DownloadPageAsXmlAsync(url : string) : Task[XDocument]
+      def create()
+        SgmlReader() <-
+          Href      = url;
+          IgnoreDtd = true;
+      Task.Factory.StartNew(create).ContinueWith(t => XDocument.Load(t.Result));
+    #endregion

@@ -1,0 +1,66 @@
+﻿#pragma indent
+
+using System
+using System.IO
+using System.Reflection
+using System.Xml.Serialization
+using Nemerle.Imperative
+using Nemerle.Utility
+
+namespace MusicBeePlugin
+  using Plugin
+
+  public abstract class ConfigBase
+    /// <summary>
+    /// デフォルト値を読み込みます。
+    /// </summary>
+    public abstract LoadDefault() : void
+
+    /// <summary>
+    /// 指定されたパスに設定をXMLシリアライズして保存します。
+    /// </summary>
+    /// <param name="path"></param>
+    public Save(path : string) : void
+      def type = GetType()
+      def serializer = XmlSerializer(type)
+      using (fs = FileStream(path, FileMode.Create, FileAccess.Write))
+        serializer.Serialize(fs, this)
+
+    /// <summary>
+    /// 指定されたパスからXMLを取得し、デシリアライズして設定を読み込みます。
+    /// </summary>
+    /// <param name="path"></param>
+    public Load(path : string) : void
+      match (File.Exists(path))
+        | false => LoadDefault()
+        | true  =>
+          def type = GetType()
+          def serializer = XmlSerializer(type)
+          using (fs = FileStream(path, FileMode.Open, FileAccess.Read))
+            try
+              def config = serializer.Deserialize(fs) :> ConfigBase
+              def properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+              foreach (prop in properties)
+                def newValue = prop.GetValue(config, null)
+                prop.SetValue(this, newValue, null)
+            catch
+              | _ is InvalidOperationException => LoadDefault()
+
+  [Serializable] \
+  public class Config : ConfigBase
+    #region singleton pattern
+    private this() { }
+    mutable static instance : Config = Config()
+    public static Instance : Config
+      get instance
+    #endregion
+
+    #region public properties
+    [Accessor(HasSetter)] \
+    private intProperty : int = 0xff
+    #endregion
+
+    #region public methods
+    public override LoadDefault() : void
+      instance = Config()
+    #endregion

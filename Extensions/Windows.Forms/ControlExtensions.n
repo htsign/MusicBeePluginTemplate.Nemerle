@@ -1,0 +1,41 @@
+﻿#pragma indent
+
+using System.Collections.Generic
+using System.Windows.Forms
+
+namespace MusicBeePlugin.Extensions.Windows.Forms
+  public static class ControlExtension
+    /// <summary>
+    /// コントロールが持つすべての子コントロールを取得します。
+    /// </summary>
+    /// <param name="control"></param>
+    /// <returns></returns>
+    public static GetAllControls(this control : Control) : IEnumerable[Control]
+      control.GetAllControls.[Control]()
+
+    /// <summary>
+    /// コントロールが持つ、指定した型のすべての子コントロールを取得します。
+    /// </summary>
+    /// <typeparam name="TResult">Control型を継承した任意の型</typeparam>
+    /// <param name="control"></param>
+    /// <returns></returns>
+    public static GetAllControls[TResult](this control : Control) : IEnumerable[TResult] \
+        where TResult : Control
+      foreach (ctrl is Control in control.Controls)
+        when (ctrl.Controls.Count > 0)
+          def childs = ctrl.GetAllControls.[TResult]()
+          foreach (child in childs)
+            yield child
+        match (ctrl)
+          | c is TResult => yield c
+
+    /// <summary>
+    /// 親コントロールの世代数を返します。
+    /// </summary>
+    /// <param name="control"></param>
+    /// <returns></returns>
+    public static GetDepth(this control : Control) : int
+      if (control.Parent != null)
+        control.Parent.GetDepth() + 1
+      else
+        0

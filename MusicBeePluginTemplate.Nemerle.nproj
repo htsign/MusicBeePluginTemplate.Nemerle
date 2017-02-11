@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>79ff08b2-bd7e-4436-8fae-eb8757ef1422</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MusicBeePluginTemplate.Nemerle</RootNamespace>
+    <AssemblyName>MusicBeePluginTemplate.Nemerle</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <NoStdLib>true</NoStdLib>
+    <NemerleVersion>Net-4.0</NemerleVersion>
+    <NemerleBinPathRoot Condition=" '$(NemerleBinPathRoot)' == '' ">$(ProgramFiles)\Nemerle</NemerleBinPathRoot>
+    <Nemerle Condition=" '$(Nemerle)' == '' ">$(NemerleBinPathRoot)\$(NemerleVersion)</Nemerle>
+    <Name>MusicBeePluginTemplate.Nemerle</Name>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>$(OutputPath)\$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="Nemerle, Version=1.2.0.507, Culture=neutral, PublicKeyToken=e080a9c724e2bfcd">
+      <Name>Nemerle</Name>
+      <AssemblyName>Nemerle.dll</AssemblyName>
+      <HintPath>C:\Program Files (x86)\Nemerle\net-4.0\Nemerle.dll</HintPath>
+    </Reference>
+    <Reference Include="SgmlReaderDll, Version=1.8.11.0, Culture=neutral, PublicKeyToken=46b2db9ca481831b">
+      <Name>SgmlReaderDll</Name>
+      <AssemblyName>SgmlReaderDll.dll</AssemblyName>
+      <HintPath>packages\SgmlReader.1.8.11\lib\4.0\SgmlReaderDll.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Name>System.Web</Name>
+      <AssemblyName>System.Web.dll</AssemblyName>
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <MacroReference Include="Nemerle.Linq">
+      <HintPath>$(Nemerle)\Nemerle.Linq.dll</HintPath>
+    </MacroReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Config.n">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extensions\Core\StringExtensions.n">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extensions\Reflection\MemberInfoExtensions.n">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extensions\Windows.Forms\ControlExtensions.n">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MainForm.n">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Designer.n">
+      <DependentUpon>MainForm.n</DependentUpon>
+    </Compile>
+    <Compile Include="MusicBeeInterface.n">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Net\DarkLyricsLyricsFetcher.n">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Net\LyricsFetcher.n">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Net\WebClientEx.n">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Plugin.n">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.n" />
+    <Compile Include="SongFile.n">
+      <SubType>Code</SubType>
+      <DependentUpon>SongFile.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Windows.Forms\ConfigureControl.Designer.n">
+      <SubType>Code</SubType>
+      <DependentUpon>Windows.Forms\ConfigureControl.n</DependentUpon>
+    </Compile>
+    <Compile Include="Windows.Forms\ConfigureControl.n">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Extensions\" />
+    <Folder Include="Extensions\Core\" />
+    <Folder Include="Extensions\Reflection\" />
+    <Folder Include="Extensions\Windows.Forms\" />
+    <Folder Include="Net\" />
+    <Folder Include="Properties\" />
+    <Folder Include="Windows.Forms\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="packages.config">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="SongFile.tt">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(Nemerle)\Nemerle.MSBuild.targets" />
+  <!--
+	To modify your build process, add your task inside one of the targets below and uncomment it. 
+	Other similar extension points exist, see Microsoft.Common.targets.
+	<Target Name="BeforeBuild">
+	</Target>
+	<Target Name="AfterBuild">
+	</Target>
+	-->
+</Project>

@@ -1,0 +1,11 @@
+﻿#pragma indent
+
+using System
+using System.Reflection
+
+namespace MusicBeePlugin.Extensions.Reflection
+  public static class MemberInfoExtension
+    public static HasAttribute[T](this mi : MemberInfo) : bool \
+        where T : Attribute
+      def attribute = Attribute.GetCustomAttribute(mi, typeof(T))
+      attribute != null

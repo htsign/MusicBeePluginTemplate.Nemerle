@@ -1,0 +1,8 @@
+E:\MyDocs\Owner\Documents\git_projects\MusicBeePluginTemplate.Nemerle\obj\Debug\MusicBeePluginTemplate.Nemerle.nprojResolveAssemblyReference.cache
+E:\MyDocs\Owner\Documents\git_projects\MusicBeePluginTemplate.Nemerle\bin\Debug\MusicBeePluginTemplate.Nemerle.dll
+E:\MyDocs\Owner\Documents\git_projects\MusicBeePluginTemplate.Nemerle\bin\Debug\MusicBeePluginTemplate.Nemerle.pdb
+E:\MyDocs\Owner\Documents\git_projects\MusicBeePluginTemplate.Nemerle\bin\Debug\Nemerle.dll
+E:\MyDocs\Owner\Documents\git_projects\MusicBeePluginTemplate.Nemerle\bin\Debug\SgmlReaderDll.dll
+E:\MyDocs\Owner\Documents\git_projects\MusicBeePluginTemplate.Nemerle\bin\Debug\Nemerle.xml
+E:\MyDocs\Owner\Documents\git_projects\MusicBeePluginTemplate.Nemerle\obj\Debug\MusicBeePluginTemplate.Nemerle.dll
+E:\MyDocs\Owner\Documents\git_projects\MusicBeePluginTemplate.Nemerle\obj\Debug\MusicBeePluginTemplate.Nemerle.pdb

@@ -1,0 +1,102 @@
+﻿#pragma indent
+
+using System
+using System.Collections.Specialized
+using System.ComponentModel
+using System.Diagnostics
+using System.Net
+using System.Threading.Tasks
+using Nemerle.Utility
+
+namespace MusicBeePlugin.Net
+  [DebuggerStepThrough] \
+  public class WebClientEx : WebClient
+    [Accessor] \
+    mutable referer : string = null
+    public CookieContainer : CookieContainer
+      mutable cc : CookieContainer = CookieContainer()
+      get cc
+      set cc = value
+
+    protected override GetWebRequest(address : Uri) : WebRequest
+      def req = base.GetWebRequest(address)
+      match (req)
+        | req is HttpWebRequest =>
+          req.CookieContainer = CookieContainer
+          req.Headers[HttpRequestHeader.Referer] = referer
+        | _ => ()
+      req
+
+    protected override GetWebResponse(request : WebRequest) : WebResponse
+      def res = base.GetWebResponse(request)
+      match (res)
+        | res is HttpWebResponse => referer = res.ResponseUri.AbsoluteUri
+        | _ => ()
+      res
+    
+    //public DownloadStringTaskAsync(address : string) : Task[string]
+    //  def tcs = TaskCompletionSource(address)
+
+    //  def handler(_sender, e)
+    //    HandleCompletion(tcs, e, args => args.Result, handler,
+    //      (webClient, completion) => webClient.DownloadStringCompleted -= completion)
+    //  DownloadStringCompleted += handler
+      
+    //  try
+    //    DownloadStringAsync(Uri(address), tcs)
+    //  catch
+    //    | _ =>
+    //      DownloadStringCompleted -= handler
+    //      throw
+      
+    //  tcs.Task
+
+    //public DownloadDataTaskAsync(address : string) : Task[array[byte]]
+    //  def tcs = TaskCompletionSource(address)
+      
+    //  def handler(_sender, e)
+    //    HandleCompletion(tcs, e, args => args.Result, handler,
+    //      (webClient, completion) => webClient.DownloadDataCompleted -= completion)
+    //  DownloadDataCompleted += handler
+      
+    //  try
+    //    DownloadDataAsync(Uri(address), tcs)
+    //  catch
+    //    | _ =>
+    //      DownloadDataCompleted -= handler
+    //      throw
+      
+    //  tcs.Task
+
+    //public UploadValuesTaskAsync(uri : string, data : NameValueCollection) : Task[array[byte]]
+    //  def tcs = TaskCompletionSource()
+
+    //  def handler(_sender, e)
+    //    HandleCompletion(tcs, e, args => args.Result, handler,
+    //      (webClient, completion) => webClient.UploadValuesCompleted -= completion)
+    //  UploadValuesCompleted += handler
+
+    //  try
+    //    UploadValuesAsync(Uri(uri), null, data, tcs)
+    //  catch
+    //    | _ =>
+    //      UploadValuesCompleted -= handler
+    //      throw
+      
+    //  tcs.Task
+
+    private HandleCompletion[TAsyncCompletedEventArgs, TCompletionDelegate, T](
+      tcs                              : TaskCompletionSource[T],
+      e                                : TAsyncCompletedEventArgs,
+      getResult                        : Func[TAsyncCompletedEventArgs, T],
+      handler                          : TCompletionDelegate,
+      unregisterHandler                : Action[WebClientEx, TCompletionDelegate]) : void \
+        where TAsyncCompletedEventArgs : AsyncCompletedEventArgs
+      when (e.UserState == tcs)
+        try
+          unregisterHandler(this, handler)
+        finally
+          match (e)
+            | _ when e.Error != null => _ = tcs.TrySetException(e.Error)
+            | _ when e.Cancelled     => _ = tcs.TrySetCanceled()
+            | _                      => _ = tcs.TrySetResult(getResult(e))

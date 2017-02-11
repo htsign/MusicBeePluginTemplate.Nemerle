@@ -1,0 +1,113 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using Nemerle.Extensions;
+
+namespace MusicBeePlugin.Net
+{
+  public class DarkLyricsLyricsFetcher : LyricsFetcher
+  {
+    private Host = "http://www.darklyrics.com/";
+
+    public override Provider : string
+    {
+      get "DarkLyrics.com";
+    }
+
+    public override Fetch(title : string, artist : string, album : string = null) : string
+    {
+      def queries = StringBuilder($<#"$title" "$artist"#>);
+      when (!string.IsNullOrEmpty(album)) _ = queries.Append($<# "$album"#>);
+      
+      def nsMgr = XmlNamespaceManager(NameTable());
+      nsMgr.AddNamespace("x", "http://www.w3.org/1999/xhtml");
+
+      DownloadPageAsXmlAsync(Host + "search?q=" + HttpUtility.UrlEncode(queries.ToString()))
+      .ContinueWith(t =>
+      {
+        def doc = t.Result;
+        // "Songs:" ってテキストを持った h3.seah の次の要素の中にある a[href] の値が歌詞のあるページURL
+        def a = doc.XPathSelectElement(<#//x:h3[@class="seah" and .="Songs:"]/following-sibling::x:div//x:a#>, nsMgr);
+        def href = a?.Attribute("href")?.Value;
+        when (href == null) throw Exception($<#なんか知らんけど歌詞URL取れんかった。
+Title: "$title", Artist: "$artist"#>);
+        href
+      })
+
+      .ContinueWith(t =>
+      {
+        def path = t.Result;
+        def doc = DownloadPageAsXmlAsync(Host + path).Result;
+        // URLの # 以降にトラック番号があるんだけど、万が一の # が無かった場合を考慮してないのでコケたらすまんな
+        def index = int.Parse(path.Split('#')[1]);
+        (doc, index)
+      }, TaskContinuationOptions.NotOnFaulted)
+
+      .ContinueWith(t =>
+      {
+        def lyricsRoot = <#//x:div[@class="lyrics"]#>;
+        def (doc, n) = t.Result;
+
+        // ref: https://os0x.g.hatena.ne.jp/os0x/20080307/1204903268
+        // h3 > a[name="{n}"]   から
+        // h3 > a[name="{n+1}"] まで取得
+        mutable targetNodes = doc.XPathEvaluate($<#$lyricsRoot/x:h3[x:a[@name="$n"]]/following-sibling::node()[following::x:h3[x:a[@name="$(n + 1)"]]]#>, nsMgr) :> IEnumerable[object];
+        when (targetNodes.Count() == 0)
+        {
+          // 上の条件で見つからなかった場合は
+          // h3 > a[name="{n}"]    から
+          // div.thanks, div.note, a まで取得
+          targetNodes = (doc.XPathEvaluate($<#$lyricsRoot/x:h3[x:a[@name="$n"]]/following-sibling::node()#>, nsMgr) :> IEnumerable[object])
+            .TakeWhile(node =>
+            {
+              match (node)
+              {
+                | elem is XElement =>
+                  if (elem.Name.LocalName == "div")
+                  {
+                    def attr = elem.Attribute("class")?.Name;
+                    attr != "thanks" && attr != "note"
+                  }
+                  else
+                  {
+                    elem.Name.LocalName != "a"
+                  }
+                | _ => true
+              }
+            })
+        }
+        // それでも見つからなかったら知らん
+
+        def items = targetNodes.Select(obj =>
+        {
+          def node = obj :> XNode;
+          match (node)
+          {
+            | elem is XElement =>
+              // br なら改行にして、i ならその中のテキストを取り出す
+              match (elem.Name.LocalName)
+              {
+                | "br" => "\r\n"
+                | "i"  => elem.Value.Trim()
+                | _    => null
+              }
+            | text is XText =>
+              // TextNode ならテキストを取り出す
+              text.Value.Trim()
+            | _ => null
+          }
+        });
+        // シーケンスから空のテキストを除外
+        items.Where(s => !string.IsNullOrEmpty(s)).ToArray()
+      }, TaskContinuationOptions.NotOnFaulted)
+
+      .ContinueWith(t => string.Join("", t.Result)).Result.Trim()
+    }
+  }
+}
